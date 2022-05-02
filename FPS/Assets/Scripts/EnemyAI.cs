@@ -1,101 +1,53 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI; 
-
-public class EnemyAI : MonoBehaviour
-{ 
-    //Target will be player
+using UnityEngine.AI;public class EnemyAI : MonoBehaviour
+{
     [SerializeField] Transform target;
-
-    //How close can Player get to enemy before chased
     [SerializeField] float chaseRange = 5.0f;
-
-    NavMeshAgent nMA;
-
-    //how far the enemy AI can look for player
-    float distancetoTarget = Mathf.Infinity;
-
-    bool isProvoked = false;
-
-    // Start is called before the first frame update
+    [SerializeField] float turnSpeed = 5.0f;    NavMeshAgent meshA;    //how far ai looks for
+    float distanceToTarget = Mathf.Infinity;
+    bool smellsYou = false;
     void Start()
     {
-        nMA = GetComponent<NavMeshAgent>(); 
-    }
-
-    // Update is called once per frame
-    /*void Update()
+        meshA = GetComponent<NavMeshAgent>();    }    private void FaceTarget(){
+        Vector3 direction = (target.position-transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * turnSpeed);
+    }    public void OnDamageTaken(){
+        EngageTarget();
+    }    void Update()
     {
-        //measure distance between enemy and player
-        distancetoTarget = Vector3.Distance(target.position, transform.position); 
-
-        if(distancetoTarget <= chaseRange)
-        {
-            nMA.SetDestination(target.position);
-        }
-
-       
-    }*/
-
-    void Update()
-    {
-
-        //measure distance between enemy and player
-        distancetoTarget = Vector3.Distance(target.position, transform.position);
-
-        if (isProvoked) 
-        {
+        //measure distance between enemy n player
+        distanceToTarget = Vector3.Distance(target.position, transform.position);
+        if (smellsYou) {
             EngageTarget();
         }
-
-        else if (distancetoTarget <= chaseRange)
-        {
-           isProvoked = true;
+        else if (distanceToTarget <= chaseRange) {
+            meshA.SetDestination(target.position);
+            smellsYou = true;
         }
-        
-    }
-    private void EngageTarget()
-    {
-        if (distancetoTarget >= nMA.stoppingDistance)
-        {
+    }    private void EngageTarget(){
+        FaceTarget();
+        if(distanceToTarget >= meshA.stoppingDistance){
             ChaseTarget();
         }
-        if (distancetoTarget <= nMA.stoppingDistance)
-        {
+        if(distanceToTarget <= meshA.stoppingDistance){
             AttackTarget();
         }
-
-    }
-
-    private void ChaseTarget()
-    {
+    }    private void ChaseTarget(){
+        GetComponent<Animator>().SetBool("attack", false);
         GetComponent<Animator>().SetTrigger("run");
-        nMA.SetDestination(target.position);
-         GetComponent<Animator>().SetBool("attack", false);
-    }
-
-
-    private void AttackTarget()
-    { 
-       GetComponent<Animator>().SetBool("attack", true);
-        //temp for now 
-        //print(name + "is attacking" + target.name);
-
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        // Display the chase range when selected 
-        Gizmos.color = new Color(1,0,0,1.0f); //choose color 
+        meshA.SetDestination(target.position);
+    }    private void AttackTarget(){
+        //temp
+        GetComponent<Animator>().SetBool("attack", true);
+        //print(name + " has slain " + target.name);
+    }    private void OnDrawGizmosSelected() {
+        //Display chase range when selected
+        Gizmos.color = new Color(1,0.7f,0.6f,1.0f);
         Gizmos.DrawWireSphere(transform.position, chaseRange);
-
-
     }
-
-
-
 }
-
 
 
